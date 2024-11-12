@@ -360,6 +360,60 @@
                 grid-template-columns: 1fr;
             }
         }
+    /* Mobil optimizasyonları */
+    @media (max-width: 768px) {
+        .app-container {
+            padding: 0.5rem;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+        }
+
+        .mode-button {
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+        }
+
+        .image-container {
+            height: 300px;
+        }
+
+        .control-button {
+            padding: 0.8rem;
+            font-size: 0.9rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+
+        .stat-card {
+            padding: 0.8rem;
+        }
+
+        .settings-panel {
+            width: 100%;
+            right: -100%;
+        }
+
+        .mobile .file-drop-zone {
+            height: 150px;
+        }
+
+        .mobile .control-button {
+            min-height: 44px;
+        }
+    }
+
+    /* Dokunmatik hedef boyutları */
+    .mobile button,
+    .mobile input,
+    .mobile select {
+        min-height: 44px;
+        min-width: 44px;
+    }
     </style>
 </head>
 <body>
@@ -483,6 +537,16 @@
                     <option value="high">Yüksek</option>
                     <option value="ultra">Ultra</option>
                 </select>
+                <div class="setting-item">
+                    <label>Ses Seviyesi</label>
+                    <input type="range" 
+                           id="volumeControl" 
+                           min="0" 
+                           max="1" 
+                           step="0.1" 
+                           value="0.2" 
+                           onchange="setVolume(this.value)">
+                </div>
             </div>
         </div>
     </div>
