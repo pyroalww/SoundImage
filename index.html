@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoSim Pro | Advanced Trading Simulator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2962ff;
+            --success: #00c853;
+            --danger: #ff1744;
+            --warning: #ffd600;
+            --bg-dark: #0a1929;
+            --bg-light: #ffffff;
+            --text-dark: #ffffff;
+            --text-light: #1a237e;
+            --border-dark: #30363d;
+            --border-light: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr 300px;
+            height: 100vh;
+            gap: 1px;
+            background: var(--border-dark);
+        }
+
+        /* Market List Styles */
+        .market-list {
+            background: var(--bg-dark);
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .market-search {
+            width: 100%;
+            padding: 0.5rem;
+            background: #1a2735;
+            border: 1px solid var(--border-dark);
+            color: var(--text-dark);
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .coin-list {
+            list-style: none;
+        }
+
+        .coin-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 0.5rem;
+        }
+
+        .coin-item:hover {
+            background: #1a2735;
+        }
+
+        .coin-item.active {
+            background: #1a2735;
+            border-left: 3px solid var(--primary);
+        }
+
+        /* Chart Area Styles */
+        .chart-area {
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .coin-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .coin-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .price-change {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .price-change.up {
+            background: rgba(0, 200, 83, 0.1);
+            color: var(--success);
+        }
+
+        .price-change.down {
+            background: rgba(255, 23, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .chart-container {
+            flex: 1;
+            padding: 1rem;
+            position: relative;
+        }
+
+        /* Trading Panel Styles */
+        .trading-panel {
+            background: var(--bg-dark);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .balance-info {
+            background: #1a2735;
+            padding: 1rem;
+            border-radius: 4px;
+        }
+
+        .trading-form {
+            background: #1a2735;
+            padding: 1rem;
+            border-radius: 4px;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.5rem;
+            background: #0a1929;
+            border: 1px solid var(--border-dark);
+            color: var(--text-dark);
+            border-radius: 4px;
+        }
+
+        .trade-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.75rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-buy {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-sell {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Portfolio Styles */
+        .portfolio {
+            background: #1a2735;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+
+        .portfolio-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-dark);
+        }
+
+        /* Market Events Panel */
+        .market-events {
+            background: #1a2735;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .event-item {
+            padding: 0.5rem;
+            border-left: 3px solid var(--warning);
+            margin-bottom: 0.5rem;
+            background: rgba(255, 214, 0, 0.1);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+        .leverage-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .leverage-btn {
+            padding: 0.25rem 0.5rem;
+            background: #1a2735;
+            border: 1px solid var(--border-dark);
+            color: var(--text-dark);
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .leverage-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .order-types {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .order-type-btn {
+            padding: 0.5rem;
+            background: #1a2735;
+            border: 1px solid var(--border-dark);
+            color: var(--text-dark);
+            cursor: pointer;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .order-type-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .stop-limits {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .indicator-panel {
+            background: #1a2735;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+
+        .indicator-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stats-panel {
+            background: #1a2735;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .stat-item {
+            padding: 0.5rem;
+            background: rgba(41, 98, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .trade-history {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+
+        .trade-item {
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--border-dark);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .trade-item.profit {
+            border-left: 3px solid var(--success);
+        }
+
+        .trade-item.loss {
+            border-left: 3px solid var(--danger);
+        }
+
+        .auto-trade-panel {
+            background: #1a2735;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+
+        .strategy-selector {
+            margin-bottom: 1rem;
+        }
+
+        .risk-meter {
+            height: 6px;
+            background: #1a2735;
+            border-radius: 3px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .risk-level {
+            height: 100%;
+            background: linear-gradient(to right, var(--success), var(--danger));
+            transition: width 0.3s ease;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--bg-dark);
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        /* Yeni Animasyonlar */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .price-alert {
+            animation: pulse 1s infinite;
+        }
+
+        .chart-tooltip {
+            position: absolute;
+            background: rgba(26, 39, 53, 0.9);
+            padding: 0.5rem;
+            border-radius: 4px;
+            pointer-events: none;
+            display: none;
+        }
+        /* Responsive tasarım güncellemeleri */
+        @media (max-width: 1400px) {
+            .container {
+                grid-template-columns: 200px 1fr 300px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .market-list, .trading-panel {
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                z-index: 100;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .market-list.active, .trading-panel.active {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Market List -->
+        <div class="market-list">
+            <div class="market-header">
+                <input type="text" class="market-search" placeholder="Search coins...">
+                <div class="market-filters">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="gainers">Top Gainers</button>
+                    <button class="filter-btn" data-filter="losers">Top Losers</button>
+                </div>
+            </div>
+            <ul class="coin-list" id="coinList"></ul>
+        </div>
+
+        <!-- Chart Area -->
+        <div class="chart-area">
+            <div class="chart-header">
+                <div class="coin-info">
+                    <h2 id="selectedCoin">BTC/USDT</h2>
+                    <div class="coin-price" id="currentPrice">$45,000.00</div>
+                    <div class="price-change up" id="priceChange">+2.5%</div>
+                </div>
+                <div class="chart-controls">
+                    <div class="timeframe-buttons">
+                        <button class="btn" data-timeframe="1m">1m</button>
+                        <button class="btn" data-timeframe="5m">5m</button>
+                        <button class="btn" data-timeframe="15m">15m</button>
+                        <button class="btn active" data-timeframe="1h">1H</button>
+                        <button class="btn" data-timeframe="4h">4H</button>
+                        <button class="btn" data-timeframe="1d">1D</button>
+                    </div>
+                    <div class="indicator-buttons">
+                        <button class="btn" data-indicator="MA">MA</button>
+                        <button class="btn" data-indicator="RSI">RSI</button>
+                        <button class="btn" data-indicator="MACD">MACD</button>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="priceChart"></canvas>
+                <canvas id="indicatorChart"></canvas>
+                <div class="chart-tooltip" id="chartTooltip"></div>
+            </div>
+        </div>
+
+        <!-- Trading Panel -->
+        <div class="trading-panel">
+            <div class="balance-info">
+                <h3>Account Overview</h3>
+                <div class="balance-grid">
+                    <div class="balance-item">
+                        <span>Total Balance</span>
+                        <div id="totalBalance">$10,000.00</div>
+                    </div>
+                    <div class="balance-item">
+                        <span>Available Margin</span>
+                        <div id="availableMargin">$10,000.00</div>
+                    </div>
+                    <div class="balance-item">
+                        <span>Total P/L</span>
+                        <div id="totalPnL" class="profit">+$0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="trading-form">
+                <div class="order-types">
+                    <button class="order-type-btn active" data-order="market">Market</button>
+                    <button class="order-type-btn" data-order="limit">Limit</button>
+                    <button class="order-type-btn" data-order="stop">Stop</button>
+                </div>
+
+                <div class="leverage-selector">
+                    <button class="leverage-btn active" data-leverage="1">1x</button>
+                    <button class="leverage-btn" data-leverage="5">5x</button>
+                    <button class="leverage-btn" data-leverage="10">10x</button>
+                    <button class="leverage-btn" data-leverage="25">25x</button>
+                    <button class="leverage-btn" data-leverage="50">50x</button>
+                    <button class="leverage-btn" data-leverage="100">100x</button>
+                </div>
+
+                <div class="form-group">
+                    <label>Amount USDT</label>
+                    <input type="number" id="tradeAmount" min="0" step="0.01">
+                    <div class="amount-shortcuts">
+                        <button data-percent="25">25%</button>
+                        <button data-percent="50">50%</button>
+                        <button data-percent="75">75%</button>
+                        <button data-percent="100">100%</button>
+                    </div>
+                </div>
+
+                <div class="stop-limits">
+                    <div class="form-group">
+                        <label>Stop Loss</label>
+                        <input type="number" id="stopLoss" min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Take Profit</label>
+                        <input type="number" id="takeProfit" min="0" step="0.01">
+                    </div>
+                </div>
+
+                <div class="risk-assessment">
+                    <div class="risk-label">
+                        <span>Risk Level</span>
+                        <span id="riskPercentage">0%</span>
+                    </div>
+                    <div class="risk-meter">
+                        <div class="risk-level" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="trade-buttons">
+                    <button class="btn btn-buy" onclick="simulator.executeTrade('buy')">
+                        Long
+                    </button>
+                    <button class="btn btn-sell" onclick="simulator.executeTrade('sell')">
+                        Short
+                    </button>
+                </div>
+            </div>
+
+            <div class="auto-trade-panel">
+                <h3>Auto Trading</h3>
+                <select class="strategy-selector" id="strategySelect">
+                    <option value="macd">MACD Cross</option>
+                    <option value="rsi">RSI Bounce</option>
+                    <option value="ma">MA Cross</option>
+                    <option value="custom">Custom Strategy</option>
+                </select>
+                <div class="strategy-params" id="strategyParams">
+                    <!-- Dinamik olarak doldurulacak -->
+                </div>
+                <button class="btn" id="startAutoTrade">Start Auto Trading</button>
+            </div>
+
+            <div class="stats-panel">
+                <h3>Trading Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span>Win Rate</span>
+                        <div id="winRate">0%</div>
+                    </div>
+                    <div class="stat-item">
+                        <span>Avg Profit</span>
+                        <div id="avgProfit">$0.00</div>
+                    </div>
+                    <div class="stat-item">
+                        <span>Total Trades</span>
+                        <div id="totalTrades">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <span>Best Trade</span>
+                        <div id="bestTrade">$0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="trade-history">
+                <h3>Recent Trades</h3>
+                <div id="tradeHistory">
+                    <!-- Dinamik olarak doldurulacak -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trading Confirmation Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <h3>Confirm Trade</h3>
+            <div class="trade-details">
+                <!-- Dinamik olarak doldurulacak -->
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-buy" id="confirmTrade">Confirm</button>
+                <button class="btn" id="cancelTrade">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class TradingSimulator {
+            constructor() {
+                this.coins = {
+                    'BTC/USDT': { price: 45000, volatility: 0.02, trend: 0 },
+                    'ETH/USDT': { price: 3000, volatility: 0.025, trend: 0 },
+                    'BNB/USDT': { price: 400, volatility: 0.03, trend: 0 },
+                    'SOL/USDT': { price: 100, volatility: 0.04, trend: 0 },
+                    'ADA/USDT': { price: 1.2, volatility: 0.035, trend: 0 },
+                    'DOT/USDT': { price: 20, volatility: 0.03, trend: 0 },
+                    'AVAX/USDT': { price: 80, volatility: 0.035, trend: 0 },
+                    'MATIC/USDT': { price: 2, volatility: 0.04, trend: 0 }
+                };
+
+                this.balance = 10000;
+                this.leverage = 1;
+                this.positions = [];
+                this.orderHistory = [];
+                this.selectedCoin = 'BTC/USDT';
+                this.priceHistory = {};
+                this.indicators = {
+                    MA: { periods: [7, 25, 99], values: {} },
+                    RSI: { period: 14, values: {} },
+                    MACD: { fast: 12, slow: 26, signal: 9, values: {} }
+                };
+                this.autoTrading = {
+                    active: false,
+                    strategy: null,
+                    params: {}
+                };
+
+                this.initialize();
+            }
+
+            initialize() {
+                this.initializePriceHistory();
+                this.setupEventListeners();
+                this.startMarketSimulation();
+                this.calculateIndicators();
+                this.updateUI();
+            }
+
+            initializePriceHistory() {
+                Object.keys(this.coins).forEach(coin => {
+                    this.priceHistory[coin] = this.generateInitialPriceHistory(
+                        this.coins[coin].price,
+                        this.coins[coin].volatility
+                    );
+                    this.calculateIndicatorsForCoin(coin);
+                });
+            }
+
+            generateInitialPriceHistory(basePrice, volatility) {
+                const history = [];
+                let price = basePrice;
+                for (let i = 0; i < 1000; i++) {
+                    const trend = Math.sin(i / 100) * volatility;
+                    const noise = (Math.random() - 0.5) * volatility;
+                    price *= (1 + trend + noise);
+                    history.push(price);
+                }
+                return history;
+            }
+
+            calculateIndicatorsForCoin(coin) {
+                const prices = this.priceHistory[coin];
+                
+                // Moving Averages
+                this.indicators.MA.periods.forEach(period => {
+                    if (!this.indicators.MA.values[coin]) {
+                        this.indicators.MA.values[coin] = {};
+                    }
+                    this.indicators.MA.values[coin][period] = this.calculateMA(prices, period);
+                });
+
+                // RSI
+                this.indicators.RSI.values[coin] = this.calculateRSI(prices);
+
+                // MACD
+                this.indicators.MACD.values[coin] = this.calculateMACD(prices);
+            }
+
+            calculateMA(prices, period) {
+                const ma = [];
+                for (let i = period - 1; i < prices.length; i++) {
+                    const sum = prices.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0);
+                    ma.push(sum / period);
+                }
+                return ma;
+            }
+
+            calculateRSI(prices) {
+                const period = this.indicators.RSI.period;
+                const rsi = [];
+                let gains = 0;
+                let losses = 0;
+
+                for (let i = 1; i < prices.length; i++) {
+                    const difference = prices[i] - prices[i - 1];
+                    if (difference >= 0) {
+                        gains += difference;
+                    } else {
+                        losses -= difference;
+                    }
+
+                    if (i >= period) {
+                        const rs = gains / losses;
+                        rsi.push(100 - (100 / (1 + rs)));
+                        
+                        const oldDiff = prices[i - period + 1] - prices[i - period];
+                        if (oldDiff >= 0) {
+                            gains -= oldDiff;
+                        } else {
+                            losses += oldDiff;
+                        }
+                    }
+                }
+
+                return rsi;
+            }
+
+            calculateMACD(prices) {
+                const fast = this.calculateEMA(prices, this.indicators.MACD.fast);
+                const slow = this.calculateEMA(prices, this.indicators.MACD.slow);
+                const macd = fast.map((f, i) => f - slow[i]);
+                const signal = this.calculateEMA(macd, this.indicators.MACD.signal);
+                
+                return {
+                    macd: macd,
+                    signal: signal,
+                    histogram: macd.map((m, i) => m - signal[i])
+                };
+            }
+
+            calculateEMA(prices, period) {
+                const ema = [];
+                const multiplier = 2 / (period + 1);
+                
+                ema[0] = prices[0];
+                for (let i = 1; i < prices.length; i++) {
+                    ema[i] = (prices[i] - ema[i - 1]) * multiplier + ema[i - 1];
+                }
+                
+                return ema;
+            }
+
+            startMarketSimulation() {
+                setInterval(() => {
+                    this.updateMarket();
+                    this.checkPositions();
+                    if (this.autoTrading.active) {
+                        this.executeAutoTradingStrategy();
+                    }
+                }, 1000);
+            }
+
+            updateMarket() {
+                Object.keys(this.coins).forEach(coin => {
+                    const coinData = this.coins[coin];
+                    
+                    // Trend değişimi
+                    if (Math.random() < 0.05) {
+                        coinData.trend = (Math.random() - 0.5) * 0.02;
+                    }
+
+                    // Fiyat güncelleme
+                    const trendEffect = coinData.trend;
+                    const randomEffect = (Math.random() - 0.5) * coinData.volatility;
+                    const totalEffect = trendEffect + randomEffect;
+                    
+                    coinData.price *= (1 + totalEffect);
+                    this.priceHistory[coin].push(coinData.price);
+                    this.priceHistory[coin].shift();
+
+                    this.calculateIndicatorsForCoin(coin);
+                });
+
+                this.updateUI();
+                this.updateChart();
+            }
+
+            checkPositions() {
+                this.positions.forEach((position, index) => {
+                    const currentPrice = this.coins[position.coin].price;
+                    const pnl = this.calculatePnL(position, currentPrice);
+
+                    // Stop Loss kontrolü
+                    if (position.stopLoss && 
+                        (position.type === 'long' && currentPrice <= position.stopLoss) ||
+                        (position.type === 'short' && currentPrice >= position.stopLoss)) {
+                        this.closePosition(index, 'Stop Loss triggered');
+                    }
+
+                    // Take Profit kontrolü
+                    if (position.takeProfit &&
+                        (position.type === 'long' && currentPrice >= position.takeProfit) ||
+                        (position.type === 'short' && currentPrice <= position.takeProfit)) {
+                        this.closePosition(index, 'Take Profit reached');
+                    }
+
+                    // Margin kontrolü
+                    if (pnl <= -position.margin) {
+                        this.closePosition(index, 'Liquidation');
+                    }
+                });
+            }
+
+            calculatePnL(position, currentPrice) {
+                const priceChange = position.type === 'long' 
+                    ? (currentPrice - position.entryPrice) / position.entryPrice
+                    : (position.entryPrice - currentPrice) / position.entryPrice;
+                
+                return position.amount * priceChange * position.leverage;
+            }
+
+            closePosition(index, reason) {
+                const position = this.positions[index];
+                const currentPrice = this.coins[position.coin].price;
+                const pnl = this.calculatePnL(position, currentPrice);
+
+                this.balance += position.margin + pnl;
+                this.orderHistory.push({
+                    type: 'Close',
+                    coin: position.coin,
+                    amount: position.amount,
+                    price: currentPrice,
+                    pnl: pnl,
+                    reason: reason,
+                    timestamp: new Date()
+                });
+
+                this.positions.splice(index, 1);
+                this.updateUI();
+            }
+
+            executeTrade(type) {
+                const amount = parseFloat(document.getElementById('tradeAmount').value);
+                const stopLoss = parseFloat(document.getElementById('stopLoss').value);
+                const takeProfit = parseFloat(document.getElementById('takeProfit').value);
+                
+                if (!amount || amount <= 0) return;
+
+                const currentPrice = this.coins[this.selectedCoin].price;
+                const margin = amount * this.leverage;
+                
+                if (margin > this.balance) {
+                    alert('Insufficient balance');
+                    return;
+                }
+
+                const position = {
+                    type: type,
+                    coin: this.selectedCoin,
+                    amount: amount,
+                    leverage: this.leverage,
+                    margin: margin,
+                    entryPrice: currentPrice,
+                    stopLoss: stopLoss,
+                    takeProfit: takeProfit,
+                    timestamp: new Date()
+                };
+
+                this.positions.push(position);
+                this.balance -= margin;
+
+                this.orderHistory.push({
+                    type: 'Open',
+                    ...position
+                });
+
+                this.updateUI();
+            }
+
+            updateUI() {
+                // UI güncelleme kodları...
+            }
+
+            // Diğer metodlar...
+        }
+
+        // Simülasyonu başlat
+        const simulator = new TradingSimulator();
+    </script>
+</body>
+</html>
